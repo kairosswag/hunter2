@@ -1,31 +1,31 @@
 
 
-/// Represents the strenght (or weakness) of a password.
+/// Represents the strength (or weakness) of a password.
 #[derive(Debug)]
-pub struct Strenght {
+pub struct Strength {
     /// estimated guesses needed to crack password
-    guesses: u32,
-    /// order of magnitude of strenght.guesses
-    guesses_log10: u32,
+    pub guesses: u32,
+    /// order of magnitude of strength.guesses
+    pub guesses_log10: u32,
     /// dictionary of back-of-the-envelope crack time estimations in seconds
-    crack_time_seconds : CrackTimeSeconds,
+    pub crack_time_seconds : CrackTimeSeconds,
     /// Integer from 0-4 (useful for implementing a strength bar)
     /// 0 # too guessable: risky password. (guesses < 10^3)
     /// 1 # very guessable: protection from throttled online attacks. (guesses < 10^6)
     /// 2 # somewhat guessable: protection from unthrottled online attacks. (guesses < 10^8)
     /// 3 # safely unguessable: moderate protection from offline slow-hash scenario. (guesses < 10^10)
     /// 4 # very unguessable: strong protection from offline slow-hash scenario. (guesses >= 10^10)
-    score : u32,
+    pub score : u32,
     /// verbal feedback to help choose better passwords. set when score <= 2.
-    feedback : Feedback,
+    pub feedback : Feedback,
     /// the list of patterns that zxcvbn based the guess calculation on.
-    sequence : String,
+    pub sequence : String,
     /// how long it took zxcvbn to calculate an answer, in milliseconds.
-    calc_time : u32,
+    pub calc_time : u32,
 }
 
 #[derive(Debug)]
-struct CrackTimeSeconds {
+pub struct CrackTimeSeconds {
     /// online attack on a service that ratelimits password auth attempts.
     online_throttling_100_per_hour : u32,
     /// online attack on a service that doesn't ratelimit,
@@ -44,7 +44,7 @@ struct CrackTimeSeconds {
 }
 
 #[derive(Debug)]
-struct Feedback {
+pub struct Feedback {
     /// explains what's wrong, eg. 'this is a top-10 common password'.
     warnings : Vec<Weakness>,
     /// a possibly-empty list of suggestions to help choose a less
@@ -60,15 +60,15 @@ pub enum Weakness {
     None
 }
 
-pub fn estimate_strenght(password: &str) -> (i32, Weakness) {
-    simple::estimate_by_lenght(password)
+pub fn estimate_strength(password: &str) -> (i32, Weakness) {
+    simple::estimate_by_length(password)
 }
 
 mod simple {
     use super::Weakness;
 
-    /// estimates password strenght according to its lenght
-    pub fn estimate_by_lenght(password: &str) -> (i32, Weakness) {
+    /// estimates password strength according to its length
+    pub fn estimate_by_length(password: &str) -> (i32, Weakness) {
         let len = password.len();
         match len {
             1 ... 5 => (1, Weakness::TooShort),
@@ -89,7 +89,7 @@ mod tests {
 
     #[test]
     fn test_too_short() {
-        let (_, weak) = super::estimate_strenght("abc");
+        let (_, weak) = super::estimate_strength("abc");
         assert_eq!(Weakness::TooShort, weak);
     }
 }
