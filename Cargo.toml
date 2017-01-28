@@ -1,0 +1,6 @@
+[package]
+name = "hunter2"
+version = "0.1.0"
+authors = ["kairosswag <kairosswag@gmail.com>"]
+
+[dependencies]
