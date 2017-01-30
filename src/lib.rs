@@ -1,4 +1,4 @@
-
+mod matching;
 
 /// Represents the strength (or weakness) of a password.
 #[derive(Debug)]
@@ -60,20 +60,19 @@ pub enum Weakness {
     None
 }
 
-pub fn estimate_strength(password: &str) -> (i32, Weakness) {
-    simple::estimate_by_length(password)
+pub fn estimate_strength(pwd: &str) -> Strength {
+    let mut omni = matching::Omnimatch::new("pwd");
+    omni.execute();
+    simple::estimate_by_length(pwd)
 }
 
 mod simple {
-    use super::Weakness;
+    use super::Strength;
 
     /// estimates password strength according to its length
-    pub fn estimate_by_length(password: &str) -> (i32, Weakness) {
-        let len = password.len();
-        match len {
-            1 ... 5 => (1, Weakness::TooShort),
-            _ => (10, Weakness::None),
-        }
+    pub fn estimate_by_length(pwd: &str) -> Strength {
+        let len = pwd.len();
+        unimplemented!();
     }
 }
 
