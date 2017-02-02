@@ -1,6 +1,5 @@
 use dictionary;
-use dictionary::Dictionary;
-use dictionary::Rank;
+use matchers::DictionaryMatcher;
 
 /// This struct will hold all matchers and execute them.
 pub struct Omnimatch<'a> {
@@ -38,19 +37,19 @@ impl<'a> Omnimatch<'a> {
 
 #[derive(Debug)]
 pub struct MatchResult {
-    matcher_name : String,
-    matches : Vec<Match>,
+    pub matcher_name : String,
+    pub matches : Vec<Match>,
 }
 
 #[derive(Clone, Copy, Debug)]
-struct Match {
-    idx_match_start : usize,
-    idx_match_end   : usize,
-    match_len       : usize,
+pub struct Match {
+    pub idx_match_start : usize,
+    pub idx_match_end   : usize,
+    pub match_len       : usize,
 }
 
 impl Match {
-    fn assemble(idx_match_start : usize, idx_match_end : usize) -> Match {
+    pub fn assemble(idx_match_start : usize, idx_match_end : usize) -> Match {
         Match {
             idx_match_start : idx_match_start, 
             idx_match_end : idx_match_end, 
@@ -59,37 +58,7 @@ impl Match {
     }
 }
 
+/// Interface for a password matcher.
 pub trait Matcher {
     fn match_pwd(&self, &str) -> MatchResult;
-}
-
-pub struct DictionaryMatcher {
-    dicts : Vec<Box<Dictionary>>,
-}
-
-impl DictionaryMatcher {
-    fn new(dict : Vec<Box<Dictionary>>) -> DictionaryMatcher {
-        DictionaryMatcher {dicts : dict}
-    }
-}
-
-impl Matcher for DictionaryMatcher {
-
-    fn match_pwd(&self, pwd : &str) -> MatchResult {
-        let mut matches = Vec::new();
-        let pwd_lc = pwd.to_lowercase();
-        for dict in &self.dicts {
-            for subs_start in 0 .. pwd_lc.len() {
-                for subs_end in subs_start + 2 .. pwd_lc.len() + 1 {
-                    let pw_sub = &pwd_lc[subs_start..subs_end];
-                    if dict.contains(pw_sub) {
-                        if let Rank::Ranking(x) = dict.rank_of(pw_sub) {
-                            matches.push(Match::assemble(subs_start, subs_end));
-                        }
-                    }
-                }
-            }
-        }
-        MatchResult { matcher_name : "DictionaryMatcher".to_string(), matches : matches}
-    }
 }

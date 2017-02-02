@@ -1,5 +1,10 @@
+#[macro_use] extern crate lazy_static;
+
+extern crate regex;
+
 mod matching;
 mod dictionary;
+mod matchers;
 
 /// Represents the strength (or weakness) of a password.
 #[derive(Debug)]
@@ -70,8 +75,11 @@ pub enum Weakness {
 }
 
 pub fn estimate_strength(pwd: &str) -> Strength {
-    let omni = matching::Omnimatch::new(pwd);
-    
+    let mut omni = matching::Omnimatch::new(pwd);
+    for aye in &omni.execute() {
+        println!("{:?}", aye);
+    }
+    println!("uh?");
     Strength::new()
 }
 
