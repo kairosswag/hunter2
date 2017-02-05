@@ -1,5 +1,5 @@
 use dictionary;
-use matchers::DictionaryMatcher;
+use matchers::{DictionaryMatcher, DateMatcher};
 
 /// This struct will hold all matchers and execute them.
 pub struct Omnimatch<'a> {
@@ -18,7 +18,11 @@ impl<'a> Omnimatch<'a> {
     fn get_default() -> Vec<Box<Matcher>> {
         let dicts = dictionary::default_dict_lib();
         let dict_matcher = Box::new(DictionaryMatcher::new(dicts));
-        let matchers : Vec<Box<Matcher>> = vec![dict_matcher];
+        let date_matcher = Box::new(DateMatcher::new());
+        let matchers : Vec<Box<Matcher>> = vec![
+            dict_matcher,
+            date_matcher,
+        ];
         matchers
     }
 
