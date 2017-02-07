@@ -1,10 +1,16 @@
+use std::rc::Rc;
 use matching::{Match, Matcher, MatchResult};
 use dictionary::{Dictionary, Rank};
 use regex::Regex;
 
 /// Dictionary Matcher will simply go over all dictionaries given and give all matching substrings
 pub struct DictionaryMatcher {
-    dicts: Vec<Box<Dictionary>>,
+    dicts: Rc<Vec<Box<Dictionary>>>,
+}
+
+/// Reverse Dictionary Matcher will match reversed dictionary keys
+pub struct ReverseDictionaryMatcher {
+    dicts: Rc<Vec<Box<Dictionary>>>,
 }
 
 /// Date Matcher will try to find patterns for the most common date formats.
@@ -16,8 +22,14 @@ pub struct DateMatcher {
 //###################################################### Helper Methods etc.
 
 impl DictionaryMatcher {
-    pub fn new(dict: Vec<Box<Dictionary>>) -> DictionaryMatcher {
+    pub fn new(dict: Rc<Vec<Box<Dictionary>>>) -> DictionaryMatcher {
         DictionaryMatcher { dicts: dict }
+    }
+}
+
+impl ReverseDictionaryMatcher {
+    pub fn new(dict: Rc<Vec<Box<Dictionary>>>) -> ReverseDictionaryMatcher {
+        ReverseDictionaryMatcher { dicts : dict }
     }
 }
 
@@ -92,7 +104,7 @@ impl Matcher for DictionaryMatcher {
     fn match_pwd(&self, pwd: &str) -> MatchResult {
         let mut matches = Vec::new();
         let pwd_lc = pwd.to_lowercase();
-        for dict in &self.dicts {
+        for dict in self.dicts.iter() {
             for subs_start in 0..pwd_lc.len() {
                 for subs_end in subs_start + 2..pwd_lc.len() + 1 {
                     let pw_sub = &pwd_lc[subs_start..subs_end];
@@ -107,6 +119,32 @@ impl Matcher for DictionaryMatcher {
         MatchResult {
             matcher_name: "DictionaryMatcher".to_string(),
             matches: matches,
+        }
+    }
+}
+
+impl Matcher for ReverseDictionaryMatcher {
+    //Concept:
+    //Dictionary Matcher but with the password reversed.
+    fn match_pwd(&self, pwd: &str) -> MatchResult {
+        let drowssap = pwd.chars().rev().collect::<String>();
+        let len = pwd.len();
+        let dict_matcher = DictionaryMatcher::new(self.dicts.clone());
+        let MatchResult { matches, .. } = dict_matcher.match_pwd(&drowssap);
+        let mut reverse_matches = Vec::new();
+        for found_match in matches {
+            reverse_matches.push(
+                Match {
+                    idx_match_start : len - found_match.idx_match_end,
+                    idx_match_end   : len - found_match.idx_match_start,
+                    match_len : found_match.match_len,
+                }
+
+            );
+        }
+        MatchResult {
+            matcher_name: "ReverseDictionaryMatcher".to_string(),
+            matches : reverse_matches,
         }
     }
 }
@@ -168,7 +206,9 @@ impl Matcher for DateMatcher {
 #[cfg(test)]
 mod tests {
 
-    use super::DateMatcher;
+    use dictionary;
+    use matching::Matcher;
+    use super::{ReverseDictionaryMatcher, DateMatcher};
 
     #[test]
     fn DateRegexTest() {
@@ -186,7 +226,17 @@ mod tests {
     }
 
     #[test]
-    fn Bla() {
+    fn ReverseDictTest() {
+        let dict = dictionary::default_dict_lib();
+        let rdm = ReverseDictionaryMatcher::new(dict);
+        let res = rdm.match_pwd("rehcleb");
+        let any = res.matches.into_iter().any(|item| item.idx_match_start == 0 && item.idx_match_end == "rehcleb".len());
+        assert_eq!(any, true);
+    }
+
+    /*
+    #[test]
+    fn RegexTest() {
         use regex::Regex;
         let maybe_date_sep = Regex::new(r"^(?P<g1>(\d{1,2})|\d{4})[\.,;\-/](?P<g2>\d{1,2})[\.,;\-/](?P<g3>(\d{1,2})|\d{4})$").unwrap();
         let maybe_date_no_sep = Regex::new(r"^\d{4,8}$").unwrap();
@@ -204,7 +254,7 @@ mod tests {
                     println!("found {:?}", slice);
                 }
             }
-        }
-    }
+        } 
+    }*/
 
 }

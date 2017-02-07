@@ -1,11 +1,13 @@
 use std::collections::HashMap;
+use std::rc::Rc;
 
-pub fn default_dict_lib() -> Vec<Box<Dictionary>> {
+
+pub fn default_dict_lib() -> Rc<Vec<Box<Dictionary>>> {
     let surnames = Box::new(RankedSurnames::new());
     let dicts : Vec<Box<Dictionary>> = vec![
         surnames,
     ];
-    dicts
+    Rc::new(dicts)
 }
 
 pub trait Dictionary {
